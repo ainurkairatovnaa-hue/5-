@@ -1,0 +1,908 @@
+<!doctype html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="5 сынып, 1 тоқсан — информатика пәнінен интерактивті оқу платформасы." />
+  <title>5 сынып · 1 тоқсан — Информатика</title>
+  <style>
+    :root {
+      --ink: #17213b;
+      --muted: #66708a;
+      --soft: #f5f8ff;
+      --paper: #ffffff;
+      --line: #e7ebf4;
+      --blue: #365df4;
+      --blue-2: #5e7cff;
+      --mint: #19b98b;
+      --mint-soft: #e7fbf4;
+      --sun: #ffbe55;
+      --sun-soft: #fff7e7;
+      --coral: #ff7d6c;
+      --coral-soft: #fff0ee;
+      --purple: #8b6ef6;
+      --purple-soft: #f2efff;
+      --shadow: 0 18px 55px rgba(40, 58, 110, .11);
+      --shadow-soft: 0 8px 22px rgba(40, 58, 110, .08);
+      --radius-xl: 30px;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --ease: cubic-bezier(.23, 1, .32, 1);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 4% 0%, rgba(101, 126, 255, .10), transparent 27rem),
+        radial-gradient(circle at 98% 13%, rgba(25, 185, 139, .10), transparent 25rem),
+        #fbfcff;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    body.modal-open { overflow: hidden; }
+    button, input, select { font: inherit; }
+    button { border: 0; }
+    button, a, input, select { -webkit-tap-highlight-color: transparent; }
+    a { color: inherit; text-decoration: none; }
+    button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+      outline: 3px solid rgba(54, 93, 244, .28);
+      outline-offset: 3px;
+    }
+
+    .shell { width: min(1180px, calc(100% - 36px)); margin: 0 auto; }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid rgba(231, 235, 244, .88);
+      background: rgba(251, 252, 255, .85);
+      backdrop-filter: blur(18px);
+    }
+    .topbar-inner { min-height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .brand { display: inline-flex; align-items: center; gap: 12px; min-width: 220px; }
+    .brand-mark {
+      width: 42px; height: 42px; display: grid; place-items: center; border-radius: 14px;
+      color: white; font-size: 18px; font-weight: 850; letter-spacing: -.05em;
+      background: linear-gradient(145deg, var(--blue), #7b86ff);
+      box-shadow: 0 9px 18px rgba(54, 93, 244, .22);
+    }
+    .brand strong { display: block; font-size: 15px; line-height: 1.1; letter-spacing: -.02em; }
+    .brand span { display: block; color: var(--muted); font-size: 12px; margin-top: 3px; }
+    .top-actions { display: flex; align-items: center; gap: 10px; }
+    .progress-mini { display: flex; align-items: center; gap: 9px; color: var(--muted); font-size: 12px; font-weight: 700; }
+    .progress-mini-bar { width: 85px; height: 7px; border-radius: 100px; background: #e9edfa; overflow: hidden; }
+    .progress-mini-bar i { display: block; height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--mint), var(--blue)); transition: width .3s var(--ease); }
+    .icon-btn { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 13px; background: var(--paper); color: var(--muted); border: 1px solid var(--line); cursor: pointer; transition: transform .16s var(--ease), color .16s var(--ease), box-shadow .16s var(--ease); }
+    .icon-btn:hover { color: var(--blue); box-shadow: var(--shadow-soft); transform: translateY(-1px); }
+    .icon-btn:active, .btn:active, .nav-item:active, .topic-pill:active { transform: scale(.97); }
+
+    .hero { padding: 44px 0 28px; }
+    .hero-card {
+      position: relative; overflow: hidden; min-height: 337px; display: grid; grid-template-columns: 1.12fr .88fr; gap: 26px; align-items: center;
+      padding: clamp(28px, 5vw, 58px); border-radius: var(--radius-xl);
+      color: white; background: linear-gradient(120deg, #2439ac 0%, #365df4 55%, #6380ff 100%); box-shadow: 0 24px 65px rgba(54, 93, 244, .23);
+    }
+    .hero-card::before, .hero-card::after { content: ""; position: absolute; border: 1px solid rgba(255,255,255,.16); border-radius: 50%; pointer-events: none; }
+    .hero-card::before { width: 480px; height: 480px; right: 160px; top: -295px; }
+    .hero-card::after { width: 330px; height: 330px; right: -86px; bottom: -182px; }
+    .hero-copy { position: relative; z-index: 1; max-width: 635px; }
+    .eyebrow { display: flex; align-items: center; gap: 9px; text-transform: uppercase; letter-spacing: .13em; font-size: 11px; font-weight: 800; }
+    .eyebrow-dot { width: 8px; height: 8px; border-radius: 50%; background: #a7ffc8; box-shadow: 0 0 0 5px rgba(167,255,200,.13); }
+    .hero h1 { margin: 16px 0 12px; max-width: 640px; font-size: clamp(34px, 5vw, 60px); line-height: .99; letter-spacing: -.065em; }
+    .hero h1 span { color: #a9f7d4; }
+    .hero-lead { max-width: 575px; margin: 0; color: rgba(255,255,255,.79); font-size: 16px; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 11px; margin-top: 25px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 45px; padding: 0 17px; border-radius: 13px; cursor: pointer; font-size: 13px; font-weight: 800; transition: transform .16s var(--ease), box-shadow .2s var(--ease), background .2s var(--ease); }
+    .btn-primary { color: var(--ink); background: #fff; box-shadow: 0 12px 25px rgba(12, 26, 103, .18); }
+    .btn-primary:hover { box-shadow: 0 14px 31px rgba(12, 26, 103, .26); transform: translateY(-2px); }
+    .btn-ghost { color: white; border: 1px solid rgba(255,255,255,.28); background: rgba(255,255,255,.10); }
+    .btn-ghost:hover { background: rgba(255,255,255,.18); transform: translateY(-2px); }
+    .btn-blue { color: white; background: var(--blue); box-shadow: 0 10px 20px rgba(54,93,244,.18); }
+    .btn-blue:hover { transform: translateY(-2px); box-shadow: 0 13px 25px rgba(54,93,244,.27); }
+    .btn-light { color: var(--ink); background: var(--soft); border: 1px solid var(--line); }
+    .btn-light:hover { background: white; transform: translateY(-1px); }
+    .btn-small { min-height: 36px; padding: 0 12px; border-radius: 11px; font-size: 12px; }
+    .hero-visual { position: relative; min-height: 240px; display: grid; place-items: center; z-index: 1; }
+    .orbit { position: absolute; width: 240px; height: 240px; border-radius: 50%; border: 1px dashed rgba(255,255,255,.25); animation: spin 24s linear infinite; }
+    .orbit::before, .orbit::after { content: ""; position: absolute; width: 12px; height: 12px; border-radius: 50%; background: #a9f7d4; box-shadow: 0 0 0 7px rgba(169,247,212,.13); }
+    .orbit::before { top: 10px; right: 38px; }
+    .orbit::after { bottom: 18px; left: 30px; background: #ffce7d; box-shadow: 0 0 0 7px rgba(255,206,125,.13); }
+    .hero-visual-main { position: relative; width: 175px; height: 175px; display: grid; place-items: center; border-radius: 48px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.24); box-shadow: 0 22px 40px rgba(12, 25, 99, .18); transform: rotate(4deg); }
+    .hero-visual-main::after { content: ""; position: absolute; inset: 16px; border-radius: 34px; border: 1px solid rgba(255,255,255,.18); }
+    .hero-number { font-size: 88px; line-height: 1; font-weight: 900; letter-spacing: -.12em; color: #fff; transform: translateX(-4px); }
+    .hero-tag { position: absolute; display: inline-flex; align-items: center; gap: 7px; padding: 9px 12px; color: var(--ink); background: #fff; border-radius: 12px; font-size: 11px; font-weight: 850; box-shadow: 0 12px 24px rgba(12, 25, 99, .18); }
+    .hero-tag::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--mint); }
+    .hero-tag-a { top: 28px; left: 9px; transform: rotate(-8deg); }
+    .hero-tag-b { right: 4px; bottom: 31px; transform: rotate(7deg); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 13px; margin: 13px 0 37px; }
+    .stat-card { display: flex; align-items: center; gap: 12px; padding: 16px 17px; border-radius: 18px; border: 1px solid var(--line); background: rgba(255,255,255,.85); box-shadow: var(--shadow-soft); }
+    .stat-icon { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px; color: var(--blue); background: #edf1ff; font-weight: 900; font-size: 15px; }
+    .stat-icon.mint { color: #0e9e75; background: var(--mint-soft); }
+    .stat-icon.sun { color: #d58a16; background: var(--sun-soft); }
+    .stat-icon.coral { color: #df5c4c; background: var(--coral-soft); }
+    .stat-card b { display: block; font-size: 17px; line-height: 1.1; letter-spacing: -.03em; }
+    .stat-card span { display: block; color: var(--muted); font-size: 11px; margin-top: 4px; }
+
+    .section-nav-wrap { position: sticky; top: 76px; z-index: 15; margin-bottom: 40px; }
+    .section-nav { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; padding: 7px; border: 1px solid var(--line); border-radius: 19px; background: rgba(255,255,255,.92); box-shadow: var(--shadow-soft); }
+    .nav-item { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 45px; padding: 0 9px; border-radius: 13px; background: transparent; color: var(--muted); cursor: pointer; font-size: 12px; font-weight: 850; transition: color .18s var(--ease), background .18s var(--ease), transform .16s var(--ease); }
+    .nav-item .nav-icon { width: 19px; height: 19px; display: grid; place-items: center; border-radius: 6px; font-size: 10px; font-weight: 900; background: var(--soft); color: var(--muted); }
+    .nav-item:hover { color: var(--blue); background: #f5f7ff; }
+    .nav-item.active { color: var(--blue); background: #edf1ff; }
+    .nav-item.active .nav-icon { color: white; background: var(--blue); }
+
+    .view { display: none; }
+    .view.active { display: block; animation: fade-up .34s var(--ease); }
+    @keyframes fade-up { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: translateY(0); } }
+    .section-head { display: flex; justify-content: space-between; align-items: end; gap: 20px; margin-bottom: 22px; }
+    .section-kicker { color: var(--blue); text-transform: uppercase; letter-spacing: .13em; font-size: 11px; font-weight: 900; }
+    .section-head h2 { margin: 7px 0 0; font-size: clamp(25px, 4vw, 34px); letter-spacing: -.05em; line-height: 1.06; }
+    .section-head p { max-width: 540px; margin: 8px 0 0; color: var(--muted); font-size: 14px; }
+    .section-tools { display: flex; align-items: center; gap: 10px; }
+    .select-wrap { position: relative; }
+    select, .search-input { min-height: 42px; color: var(--ink); border: 1px solid var(--line); border-radius: 12px; background: white; padding: 0 13px; font-size: 12px; font-weight: 750; }
+    select { padding-right: 31px; }
+    .topic-tabs { display: flex; gap: 10px; overflow-x: auto; padding: 3px 2px 12px; scrollbar-width: thin; }
+    .topic-pill { display: flex; align-items: center; gap: 9px; flex: 0 0 auto; min-height: 47px; padding: 0 14px; color: var(--muted); border: 1px solid var(--line); border-radius: 14px; background: rgba(255,255,255,.8); cursor: pointer; font-size: 12px; font-weight: 800; transition: all .2s var(--ease); }
+    .topic-pill:hover { transform: translateY(-1px); color: var(--ink); box-shadow: var(--shadow-soft); }
+    .topic-pill.active { color: var(--ink); border-color: transparent; background: white; box-shadow: var(--shadow-soft); }
+    .topic-num { width: 27px; height: 27px; display: grid; place-items: center; border-radius: 9px; color: white; background: var(--blue); font-size: 10px; font-weight: 900; }
+    .tone-mint .topic-num { background: var(--mint); }
+    .tone-sun .topic-num { background: #eea127; }
+    .tone-coral .topic-num { background: var(--coral); }
+    .tone-purple .topic-num { background: var(--purple); }
+
+    .lecture-layout { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(280px, .6fr); gap: 18px; margin-top: 10px; }
+    .lesson-card, .side-card, .practice-card, .game-card, .test-shell, .glossary-shell { border: 1px solid var(--line); background: rgba(255,255,255,.92); box-shadow: var(--shadow-soft); border-radius: var(--radius-lg); }
+    .lesson-card { overflow: hidden; }
+    .lesson-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 25px 28px 0; }
+    .lesson-label { display: inline-flex; align-items: center; gap: 7px; color: var(--blue); font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: .1em; }
+    .lesson-label i { width: 7px; height: 7px; border-radius: 50%; background: var(--mint); }
+    .lesson-time { color: var(--muted); font-size: 11px; font-weight: 750; }
+    .lesson-body { padding: 0 28px 28px; }
+    .lesson-body h3 { max-width: 650px; margin: 13px 0 10px; font-size: clamp(25px, 4vw, 38px); line-height: 1.08; letter-spacing: -.055em; }
+    .lesson-lead { max-width: 760px; color: var(--muted); font-size: 15px; margin: 0; }
+    .lesson-divider { height: 1px; margin: 25px 0; background: var(--line); }
+    .lesson-content { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 18px; }
+    .lesson-content h4 { margin: 0 0 8px; font-size: 14px; letter-spacing: -.02em; }
+    .lesson-content p { margin: 0; color: var(--muted); font-size: 13px; }
+    .lesson-list { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
+    .lesson-list li { position: relative; padding-left: 23px; color: var(--muted); font-size: 13px; }
+    .lesson-list li::before { content: ""; position: absolute; left: 0; top: 8px; width: 9px; height: 9px; border-radius: 50%; background: #dfe5ff; box-shadow: inset 0 0 0 3px #7690ff; }
+    .tip-box { display: flex; gap: 12px; align-items: flex-start; padding: 15px; border-radius: 15px; background: var(--mint-soft); color: #137d60; }
+    .tip-icon { width: 27px; height: 27px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 9px; color: white; background: var(--mint); font-size: 12px; font-weight: 900; }
+    .tip-box strong { display: block; font-size: 12px; margin-bottom: 2px; }
+    .tip-box span { display: block; color: #348e75; font-size: 12px; }
+    .video-card { position: relative; overflow: hidden; display: flex; align-items: center; gap: 16px; min-height: 114px; margin-top: 24px; padding: 16px; border-radius: 17px; color: white; background: linear-gradient(110deg, #101c4d, #263d9b); }
+    .video-card::after { content: ""; position: absolute; width: 190px; height: 190px; right: -75px; top: -79px; border: 1px solid rgba(255,255,255,.18); border-radius: 50%; }
+    .video-thumb { position: relative; z-index: 1; width: 125px; min-height: 82px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 12px; background: linear-gradient(135deg, #6f8bff, #80e7c4); }
+    .play { width: 38px; height: 38px; display: grid; place-items: center; padding-left: 2px; border-radius: 50%; color: var(--blue); background: white; font-size: 14px; box-shadow: 0 7px 13px rgba(10, 23, 79, .17); }
+    .video-meta { position: relative; z-index: 1; min-width: 0; }
+    .video-meta small { color: #aebaff; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; }
+    .video-meta strong { display: block; margin: 3px 0 4px; font-size: 15px; letter-spacing: -.02em; }
+    .video-meta span { color: rgba(255,255,255,.65); font-size: 11px; }
+    .video-link { position: relative; z-index: 1; margin-left: auto; flex: 0 0 auto; align-self: end; color: #d5dcff; font-size: 11px; font-weight: 850; }
+    .video-link:hover { color: white; text-decoration: underline; }
+
+    .side-stack { display: grid; gap: 18px; align-content: start; }
+    .side-card { padding: 21px; }
+    .side-card h4 { margin: 0; font-size: 14px; letter-spacing: -.02em; }
+    .side-card > p { margin: 7px 0 16px; color: var(--muted); font-size: 12px; }
+    .side-stat { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 0; border-top: 1px solid var(--line); }
+    .side-stat:first-of-type { border-top: 0; padding-top: 0; }
+    .side-stat span { color: var(--muted); font-size: 12px; }
+    .side-stat b { font-size: 14px; }
+    .question-box { padding: 15px; border-radius: 15px; background: var(--sun-soft); }
+    .question-box small { color: #b47b22; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: .1em; }
+    .question-box p { margin: 7px 0 12px; color: #76521b; font-size: 13px; font-weight: 750; }
+    .reveal-btn { color: #a56d11; background: transparent; padding: 0; cursor: pointer; font-size: 11px; font-weight: 900; }
+    .answer { display: none; padding-top: 11px; color: #735320; font-size: 12px; }
+    .answer.show { display: block; animation: fade-up .25s var(--ease); }
+
+    .progress-strip { display: flex; align-items: center; gap: 13px; margin: 0 0 20px; padding: 15px 17px; border-radius: 16px; background: white; border: 1px solid var(--line); }
+    .progress-strip-copy { min-width: 120px; }
+    .progress-strip-copy b { display: block; font-size: 13px; }
+    .progress-strip-copy span { color: var(--muted); font-size: 11px; }
+    .progress-line { height: 9px; flex: 1; overflow: hidden; border-radius: 100px; background: #edf0f8; }
+    .progress-line i { display: block; height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--mint), var(--blue)); transition: width .35s var(--ease); }
+    .progress-percent { min-width: 44px; text-align: right; color: var(--blue); font-size: 13px; font-weight: 900; }
+    .practice-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; }
+    .practice-card { padding: 20px; }
+    .level-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 9px; border-radius: 9px; color: #0e9e75; background: var(--mint-soft); font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: .08em; }
+    .level-badge.solid { color: #a56d11; background: var(--sun-soft); }
+    .level-badge.challenge { color: #df5c4c; background: var(--coral-soft); }
+    .practice-card h3 { margin: 15px 0 5px; font-size: 17px; letter-spacing: -.035em; }
+    .practice-card p { min-height: 57px; margin: 0 0 16px; color: var(--muted); font-size: 12px; }
+    .task-list { display: grid; gap: 9px; }
+    .task { display: flex; align-items: flex-start; gap: 9px; padding: 11px 0; border-top: 1px solid var(--line); cursor: pointer; }
+    .task:first-child { border-top: 0; }
+    .task input { appearance: none; width: 18px; height: 18px; flex: 0 0 auto; margin: 1px 0 0; border: 1.5px solid #cfd6e9; border-radius: 6px; background: white; cursor: pointer; transition: all .16s var(--ease); }
+    .task input:checked { border-color: var(--mint); background: var(--mint); box-shadow: inset 0 0 0 4px white; }
+    .task span { color: #4f5870; font-size: 12px; line-height: 1.4; }
+    .task input:checked + span { color: #9aa2b5; text-decoration: line-through; }
+    .practice-topic-label { display: inline-flex; align-items: center; gap: 7px; margin-bottom: 13px; color: var(--muted); font-size: 11px; font-weight: 850; }
+    .practice-topic-label i { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); }
+
+    .game-layout { display: grid; grid-template-columns: .85fr 1.15fr; gap: 18px; align-items: start; }
+    .game-list { display: grid; gap: 13px; }
+    .game-card { display: flex; align-items: center; gap: 14px; padding: 18px; cursor: pointer; transition: transform .2s var(--ease), box-shadow .2s var(--ease), border-color .2s var(--ease); }
+    .game-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+    .game-card.selected { border-color: #bfc9ff; box-shadow: 0 12px 27px rgba(54,93,244,.13); }
+    .game-icon { width: 49px; height: 49px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 16px; color: white; background: linear-gradient(140deg, var(--purple), #aa99ff); font-size: 18px; font-weight: 900; }
+    .game-icon.mint { background: linear-gradient(140deg, #0aa97c, #64d8b4); }
+    .game-icon.sun { background: linear-gradient(140deg, #e99b22, #ffd37c); }
+    .game-card h3 { margin: 0 0 3px; font-size: 15px; letter-spacing: -.025em; }
+    .game-card p { margin: 0; color: var(--muted); font-size: 11px; }
+    .game-card .arrow { margin-left: auto; color: #aab4d4; font-size: 18px; }
+    .game-panel { min-height: 390px; padding: 27px; border-radius: var(--radius-lg); color: white; background: linear-gradient(140deg, #1b2b78, #3d55ca); box-shadow: 0 20px 40px rgba(25, 42, 125, .19); }
+    .game-panel-empty { display: grid; place-items: center; min-height: 330px; text-align: center; color: #c4ccff; }
+    .game-panel-empty .empty-icon { width: 55px; height: 55px; display: grid; place-items: center; margin: 0 auto 15px; border-radius: 18px; color: #1b2b78; background: #c4d0ff; font-size: 20px; font-weight: 900; }
+    .game-panel-empty h3 { margin: 0 0 7px; color: white; font-size: 20px; letter-spacing: -.04em; }
+    .game-panel-empty p { max-width: 350px; margin: 0; font-size: 12px; }
+    .game-kicker { color: #aebaff; font-size: 10px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+    .game-panel h3 { margin: 8px 0 7px; font-size: 27px; line-height: 1.1; letter-spacing: -.05em; }
+    .game-instruction { color: #c3ccff; font-size: 13px; margin: 0 0 22px; }
+    .game-score-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 19px; color: #c3ccff; font-size: 11px; font-weight: 750; }
+    .game-score-row b { color: #fff; font-size: 16px; }
+    .game-question { padding: 19px; border-radius: 16px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.13); }
+    .game-question small { color: #aebaff; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: .1em; }
+    .game-question strong { display: block; margin: 9px 0 17px; color: white; font-size: 17px; line-height: 1.35; }
+    .game-options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px; }
+    .game-option { min-height: 43px; color: white; border: 1px solid rgba(255,255,255,.25); border-radius: 11px; background: rgba(255,255,255,.09); cursor: pointer; font-size: 12px; font-weight: 850; transition: background .16s var(--ease), transform .16s var(--ease); }
+    .game-option:hover { background: rgba(255,255,255,.19); transform: translateY(-1px); }
+    .game-option.correct { background: rgba(102, 224, 173, .27); border-color: #70ddb7; }
+    .game-option.wrong { background: rgba(255, 125, 108, .27); border-color: #ff9e92; }
+    .game-feedback { min-height: 20px; margin-top: 14px; color: #c9f8e4; font-size: 12px; font-weight: 750; }
+    .order-grid { display: grid; gap: 8px; }
+    .order-chip { display: flex; align-items: center; gap: 10px; min-height: 42px; padding: 0 12px; color: white; border: 1px solid rgba(255,255,255,.22); border-radius: 11px; background: rgba(255,255,255,.08); cursor: pointer; text-align: left; font-size: 12px; font-weight: 750; }
+    .order-chip span { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 7px; color: #3348a6; background: #dce3ff; font-size: 10px; font-weight: 900; }
+    .order-chip.picked { border-color: #8be8c8; background: rgba(102,224,173,.2); }
+    .order-chip.picked span { color: white; background: var(--mint); }
+
+    .test-shell { padding: clamp(20px, 4vw, 30px); }
+    .test-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 22px; }
+    .test-meta-copy b { display: block; font-size: 15px; }
+    .test-meta-copy span { color: var(--muted); font-size: 12px; }
+    .test-progress { display: flex; align-items: center; gap: 9px; color: var(--muted); font-size: 11px; font-weight: 800; }
+    .test-progress .progress-line { width: 100px; flex: initial; height: 7px; }
+    .test-question-list { display: grid; gap: 13px; }
+    .test-question { padding: 19px; border: 1px solid var(--line); border-radius: 16px; background: #fbfcff; }
+    .q-top { display: flex; align-items: start; justify-content: space-between; gap: 14px; }
+    .q-number { width: 26px; height: 26px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 9px; color: white; background: var(--blue); font-size: 11px; font-weight: 900; }
+    .q-copy { flex: 1; }
+    .q-copy small { display: block; color: var(--blue); font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: .1em; }
+    .q-copy strong { display: block; margin-top: 4px; font-size: 14px; line-height: 1.42; }
+    .options { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; margin: 14px 0 0 40px; }
+    .option { display: flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 11px; color: #4f5870; border: 1px solid var(--line); border-radius: 10px; background: white; cursor: pointer; text-align: left; font-size: 12px; transition: all .16s var(--ease); }
+    .option:hover { color: var(--blue); border-color: #bdc8ff; background: #f7f8ff; }
+    .option.selected { color: var(--blue); border-color: var(--blue); background: #eef1ff; }
+    .option input { display: none; }
+    .option-letter { width: 20px; height: 20px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 6px; color: #8993ae; background: #f0f2f8; font-size: 10px; font-weight: 900; }
+    .option.selected .option-letter { color: white; background: var(--blue); }
+    .test-bottom { display: flex; justify-content: space-between; align-items: center; gap: 15px; margin-top: 22px; padding-top: 21px; border-top: 1px solid var(--line); }
+    .test-note { color: var(--muted); font-size: 11px; }
+    .result-box { display: none; align-items: center; gap: 15px; margin-top: 18px; padding: 17px; border-radius: 15px; color: #126a52; background: var(--mint-soft); }
+    .result-box.show { display: flex; animation: fade-up .3s var(--ease); }
+    .result-score { min-width: 62px; color: #0b9f74; font-size: 24px; font-weight: 900; letter-spacing: -.07em; }
+    .result-box strong { display: block; font-size: 14px; }
+    .result-box span { display: block; margin-top: 3px; color: #39876f; font-size: 12px; }
+    .incorrect { border-color: #ffb0a6; background: #fff7f6; }
+    .correct-answer { border-color: #8ddfbd; background: #f2fff9; }
+
+    .glossary-shell { padding: clamp(20px, 4vw, 30px); }
+    .glossary-tools { display: flex; gap: 10px; margin-bottom: 20px; }
+    .search-box { position: relative; flex: 1; }
+    .search-box::before { content: "⌕"; position: absolute; left: 13px; top: 8px; color: #9ba6c0; font-size: 20px; line-height: 1; }
+    .search-input { width: 100%; padding-left: 35px; }
+    .glossary-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
+    .term-card { padding: 17px; border: 1px solid var(--line); border-radius: 15px; background: #fbfcff; transition: transform .18s var(--ease), box-shadow .18s var(--ease); }
+    .term-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-soft); }
+    .term-card small { display: inline-block; margin-bottom: 8px; color: var(--blue); font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: .1em; }
+    .term-card h3 { margin: 0 0 5px; font-size: 15px; letter-spacing: -.025em; }
+    .term-card p { margin: 0; color: var(--muted); font-size: 12px; }
+    .empty-state { grid-column: 1 / -1; padding: 35px; text-align: center; color: var(--muted); font-size: 13px; }
+
+    footer { margin-top: 75px; padding: 28px 0 34px; border-top: 1px solid var(--line); }
+    .footer-inner { display: flex; align-items: center; justify-content: space-between; gap: 15px; color: var(--muted); font-size: 11px; }
+    .footer-inner strong { color: var(--ink); }
+    .footer-links { display: flex; gap: 13px; }
+    .footer-links button { color: var(--muted); background: transparent; padding: 0; cursor: pointer; font-size: 11px; }
+    .footer-links button:hover { color: var(--blue); }
+
+    .toast { position: fixed; z-index: 50; right: 22px; bottom: 22px; display: flex; align-items: center; gap: 10px; max-width: min(340px, calc(100% - 44px)); padding: 12px 15px; color: white; border-radius: 13px; background: #17213b; box-shadow: 0 15px 30px rgba(23,33,59,.2); font-size: 12px; font-weight: 750; opacity: 0; pointer-events: none; transform: translateY(12px); transition: opacity .2s var(--ease), transform .2s var(--ease); }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast-mark { width: 20px; height: 20px; display: grid; place-items: center; border-radius: 7px; color: #17213b; background: #a9f7d4; font-size: 11px; font-weight: 900; }
+
+    .modal-backdrop { position: fixed; inset: 0; z-index: 60; display: none; place-items: center; padding: 20px; background: rgba(16, 25, 54, .5); backdrop-filter: blur(8px); }
+    .modal-backdrop.show { display: grid; animation: fade-in .2s var(--ease); }
+    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+    .modal { width: min(520px, 100%); padding: 27px; border-radius: 24px; background: white; box-shadow: 0 30px 70px rgba(16,25,54,.25); animation: modal-in .26s var(--ease); }
+    @keyframes modal-in { from { opacity: 0; transform: scale(.96) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+    .modal-head { display: flex; justify-content: space-between; gap: 15px; align-items: start; }
+    .modal h3 { margin: 0; font-size: 21px; letter-spacing: -.045em; }
+    .modal p { margin: 12px 0 0; color: var(--muted); font-size: 13px; }
+    .modal-close { width: 31px; height: 31px; display: grid; place-items: center; border-radius: 10px; color: var(--muted); background: var(--soft); cursor: pointer; font-size: 18px; }
+    .modal-close:hover { color: var(--blue); }
+    .modal-actions { display: flex; justify-content: end; gap: 9px; margin-top: 23px; }
+
+    @media (max-width: 920px) {
+      .hero-card { grid-template-columns: 1fr; }
+      .hero-visual { position: absolute; opacity: .33; right: 14px; bottom: -18px; transform: scale(.82); }
+      .lecture-layout, .game-layout { grid-template-columns: 1fr; }
+      .practice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .glossary-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    }
+    @media (max-width: 680px) {
+      .shell { width: min(100% - 24px, 560px); }
+      .topbar-inner { min-height: 68px; }
+      .brand { min-width: 0; }
+      .brand span { display: none; }
+      .progress-mini { display: none; }
+      .hero { padding-top: 23px; }
+      .hero-card { min-height: 410px; padding: 28px 23px; }
+      .hero h1 { font-size: 42px; }
+      .hero-lead { font-size: 14px; }
+      .hero-visual { right: -24px; bottom: -20px; }
+      .stat-row { grid-template-columns: repeat(2, 1fr); margin-bottom: 25px; }
+      .stat-card { padding: 13px; }
+      .stat-card b { font-size: 15px; }
+      .stat-card span { font-size: 10px; }
+      .section-nav-wrap { top: 68px; margin-bottom: 28px; overflow-x: auto; }
+      .section-nav { width: max-content; min-width: 100%; grid-template-columns: repeat(5, minmax(100px, 1fr)); }
+      .nav-item { min-height: 42px; font-size: 10px; }
+      .nav-item .nav-icon { display: none; }
+      .section-head { display: block; }
+      .section-tools { margin-top: 14px; }
+      .lesson-top, .lesson-body { padding-left: 19px; padding-right: 19px; }
+      .lesson-content { grid-template-columns: 1fr; }
+      .video-card { align-items: flex-start; flex-wrap: wrap; }
+      .video-thumb { width: 100%; min-height: 116px; }
+      .video-link { margin-left: 0; }
+      .practice-grid { grid-template-columns: 1fr; }
+      .practice-card p { min-height: auto; }
+      .progress-strip { align-items: flex-start; flex-wrap: wrap; }
+      .progress-line { order: 3; flex-basis: 100%; }
+      .progress-percent { margin-left: auto; }
+      .game-panel { padding: 21px; }
+      .game-options { grid-template-columns: 1fr; }
+      .options { grid-template-columns: 1fr; margin-left: 0; }
+      .test-bottom { align-items: stretch; flex-direction: column; }
+      .test-bottom .btn { width: 100%; }
+      .glossary-tools { flex-direction: column; }
+      .glossary-grid { grid-template-columns: 1fr; }
+      .footer-inner { align-items: flex-start; flex-direction: column; }
+      .footer-links { flex-wrap: wrap; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="shell topbar-inner">
+      <a class="brand" href="#top" aria-label="5 сынып 1 тоқсан басты бетке өту">
+        <span class="brand-mark">5.</span>
+        <span><strong>Информатика</strong><span>5 сынып · 1 тоқсан</span></span>
+      </a>
+      <div class="top-actions">
+        <div class="progress-mini" aria-label="Жалпы прогресс">
+          <span>Прогресс</span>
+          <span class="progress-mini-bar"><i id="miniProgress"></i></span>
+          <b id="miniProgressText">0%</b>
+        </div>
+        <button class="icon-btn" id="printBtn" type="button" title="Бетті басып шығару" aria-label="Бетті басып шығару">↗</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="top" class="shell">
+    <section class="hero" aria-labelledby="heroTitle">
+      <div class="hero-card">
+        <div class="hero-copy">
+          <div class="eyebrow"><i class="eyebrow-dot"></i>Сенің цифрлық оқу кеңістігің</div>
+          <h1 id="heroTitle">Информатика. <span>5 сынып.</span> 1 тоқсан.</h1>
+          <p class="hero-lead">Информатиканы түсініп үйрен, тәжірибеде қолданып көр, ойында бекіт және өз біліміңді тест арқылы тексер.</p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" id="startBtn" type="button">Оқуды бастау <span>→</span></button>
+            <button class="btn btn-ghost" id="aboutBtn" type="button">Платформа туралы</button>
+          </div>
+        </div>
+        <div class="hero-visual" aria-hidden="true">
+          <div class="orbit"></div>
+          <div class="hero-visual-main"><div class="hero-number">5</div></div>
+          <div class="hero-tag hero-tag-a">5 тақырып</div>
+          <div class="hero-tag hero-tag-b">1 тоқсан</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="stat-row" aria-label="Курс статистикасы">
+      <div class="stat-card"><div class="stat-icon">01</div><div><b>5</b><span>негізгі тақырып</span></div></div>
+      <div class="stat-card"><div class="stat-icon mint">↗</div><div><b>15+</b><span>практикалық тапсырма</span></div></div>
+      <div class="stat-card"><div class="stat-icon sun">★</div><div><b>5</b><span>тақырыптық ойын</span></div></div>
+      <div class="stat-card"><div class="stat-icon coral">✓</div><div><b>10</b><span>тест сұрағы</span></div></div>
+    </section>
+
+    <div class="section-nav-wrap">
+      <nav class="section-nav" aria-label="Курс бөлімдері">
+        <button class="nav-item active" data-view="lessons" type="button"><span class="nav-icon">01</span>Дәрістер</button>
+        <button class="nav-item" data-view="practice" type="button"><span class="nav-icon">02</span>Практика</button>
+        <button class="nav-item" data-view="games" type="button"><span class="nav-icon">03</span>Ойындар</button>
+        <button class="nav-item" data-view="test" type="button"><span class="nav-icon">04</span>Тест</button>
+        <button class="nav-item" data-view="glossary" type="button"><span class="nav-icon">05</span>Сөздік</button>
+      </nav>
+    </div>
+
+    <section id="lessons" class="view active" aria-labelledby="lessonsTitle">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">01 · Білім базасы</div>
+          <h2 id="lessonsTitle">Дәрістер</h2>
+          <p>Әр тақырыпты қысқа түсіндірме, маңызды ұғымдар және бейнесабақ арқылы меңгер.</p>
+        </div>
+        <div class="section-tools"><span class="lesson-time">Оқу қарқыны: өзіңе ыңғайлы</span></div>
+      </div>
+      <div class="topic-tabs" id="lessonTabs" role="tablist" aria-label="Дәріс тақырыптары"></div>
+      <div id="lessonView"></div>
+    </section>
+
+    <section id="practice" class="view" aria-labelledby="practiceTitle">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">02 · Қолдану алаңы</div>
+          <h2 id="practiceTitle">Практикалық тапсырмалар</h2>
+          <p>Алдымен түсін, кейін жасап көр. Орындаған тапсырмаларың белгіленіп, прогрессің сақталады.</p>
+        </div>
+        <div class="section-tools"><button class="btn btn-light btn-small" id="resetProgressBtn" type="button">Прогресті тазалау</button></div>
+      </div>
+      <div class="progress-strip" aria-label="Тапсырмалар прогресі">
+        <div class="progress-strip-copy"><b id="practiceProgressTitle">Жақсы бастама!</b><span id="practiceProgressSub">0 тапсырма орындалды</span></div>
+        <div class="progress-line"><i id="practiceProgressLine"></i></div>
+        <div class="progress-percent" id="practiceProgressPercent">0%</div>
+      </div>
+      <div class="topic-tabs" id="practiceTabs" role="tablist" aria-label="Практика тақырыптары"></div>
+      <div class="practice-grid" id="practiceGrid"></div>
+    </section>
+
+    <section id="games" class="view" aria-labelledby="gamesTitle">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">03 · Ойнап үйрен</div>
+          <h2 id="gamesTitle">Оқу ойындары</h2>
+          <p>Әр тақырыпқа арналған жеке интерактивті ойын арқылы білімді бекіт.</p>
+        </div>
+      </div>
+      <div class="game-layout">
+        <div class="game-list" id="gameList">
+          <button class="game-card selected" data-game="ergonomia" type="button"><span class="game-icon">01</span><span><h3>Эргономика сақшысы</h3><p>Дұрыс және бұрыс әдетті ажырат.</p></span><span class="arrow">›</span></button>
+          <button class="game-card" data-game="aqparat" type="button"><span class="game-icon mint">02</span><span><h3>Ақпаратты таны</h3><p>Ақпарат пен әрекетті ажырат.</p></span><span class="arrow">›</span></button>
+          <button class="game-card" data-game="internet" type="button"><span class="game-icon sun">03</span><span><h3>Қауіпсіз іздеу</h3><p>Интернеттегі әрекетті бағала.</p></span><span class="arrow">›</span></button>
+          <button class="game-card" data-game="history" type="button"><span class="game-icon" style="background:linear-gradient(140deg,#ff7d6c,#ffb29f)">04</span><span><h3>Уақыт сызығы</h3><p>Есептеу техникасын ретімен орналастыр.</p></span><span class="arrow">›</span></button>
+          <button class="game-card" data-game="software-ai" type="button"><span class="game-icon mint">05</span><span><h3>AI көмекшісін тексер</h3><p>Бағдарлама мен құрылғыны таны.</p></span><span class="arrow">›</span></button>
+        </div>
+        <div class="game-panel" id="gamePanel"></div>
+      </div>
+    </section>
+
+    <section id="test" class="view" aria-labelledby="testTitle">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">04 · Өзіңді тексер</div>
+          <h2 id="testTitle">Тақырыптық тест</h2>
+          <p>10 сұраққа жауап бер. Соңында нәтижені көріп, қай тақырыпты тағы қайталау керегін анықта.</p>
+        </div>
+        <div class="section-tools"><select id="testFilter" aria-label="Тест тақырыбын таңдау"><option value="all">Барлық тақырып</option></select></div>
+      </div>
+      <div class="test-shell">
+        <div class="test-meta">
+          <div class="test-meta-copy"><b>Білімді бекіту тесті</b><span>Бір сұраққа бір ғана дұрыс жауап бар.</span></div>
+          <div class="test-progress"><span id="answeredCount">0/10 жауап</span><span class="progress-line"><i id="testProgressLine"></i></span></div>
+        </div>
+        <div class="test-question-list" id="testQuestions"></div>
+        <div class="test-bottom"><span class="test-note">Асықпай ойлан. Жауабыңды өзгерте аласың.</span><button class="btn btn-blue" id="submitTestBtn" type="button">Нәтижені көру</button></div>
+        <div class="result-box" id="testResult"><div class="result-score" id="resultScore">0/10</div><div><strong id="resultTitle">Нәтижең дайын!</strong><span id="resultText"></span></div></div>
+      </div>
+    </section>
+
+    <section id="glossary" class="view" aria-labelledby="glossaryTitle">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">05 · Маңызды ұғымдар</div>
+          <h2 id="glossaryTitle">Сөздік</h2>
+          <p>Тақырыптардағы негізгі сөздерді іздеп тап. Қайталау кезінде осы бөлімді пайдалана аласың.</p>
+        </div>
+      </div>
+      <div class="glossary-shell">
+        <div class="glossary-tools"><div class="search-box"><input class="search-input" id="glossarySearch" type="search" placeholder="Терминді іздеу..." aria-label="Сөздіктен термин іздеу" /></div><select id="glossaryFilter" aria-label="Сөздік тақырыбын таңдау"><option value="all">Барлық тақырып</option></select></div>
+        <div class="glossary-grid" id="glossaryGrid"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="shell footer-inner"><div><strong>5 сынып · 1 тоқсан</strong> — информатиканы қызығып үйрен.</div><div class="footer-links"><button id="topBtn" type="button">Жоғарыға ↑</button><button id="aboutFooterBtn" type="button">Жоба туралы</button></div></div>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"><span class="toast-mark">✓</span><span id="toastText">Сақталды</span></div>
+  <div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal"><div class="modal-head"><h3 id="modalTitle">Платформа туралы</h3><button class="modal-close" id="modalClose" type="button" aria-label="Жабу">×</button></div><p id="modalText">Бұл бір HTML файлдың ішінде жасалған шағын оқу платформасы. Дәрістерді оқып, тапсырмалар орындап, ойындар ойнап, тест нәтижесін тексеруге болады. Белгіленген прогресс браузерде сақталады.</p><div class="modal-actions"><button class="btn btn-blue btn-small" id="modalOk" type="button">Түсінікті</button></div></div>
+  </div>
+
+  <script>
+    const topics = [
+      {
+        id: 'ergonomia', number: '01', title: 'Эргономика дегеніміз не?', short: 'Компьютермен қауіпсіз және ыңғайлы жұмыс істеу', tone: 'tone-purple', label: 'Денсаулық · қауіпсіздік', time: '6 минут',
+        lead: 'Эргономика — адамның жұмыс орнын өзіне ыңғайлы, қауіпсіз және денсаулыққа пайдалы етіп ұйымдастыруы.',
+        sections: [
+          { heading: 'Негізгі ой', text: 'Компьютер алдында ұзақ отырғанда дене қалпы, жарық, экранның орналасуы және үзіліс жасау өте маңызды. Дұрыс ұйымдастырылған жұмыс орны шаршауды азайтып, зейінді сақтауға көмектеседі.' },
+          { heading: 'Есте сақта', list: ['Арқаңды тік ұстап, орындықтың арқалығына сүйен.', 'Көз бен экран арасы шамамен 50–70 см болсын.', 'Әр 20–30 минут сайын көзге және денеге қысқа үзіліс жаса.', 'Экранға жарық тікелей шағылыспайтындай орналастыр.'] }
+        ],
+        tip: 'Ең қарапайым ереже: денеңе жайлы болмаса, жұмыс орныңды қайта ретте.',
+        video: { title: 'Жұмыс орнын дұрыс ұйымдастыру', meta: '3 минут · қазақша іздеу', query: '5 сынып информатика эргономика жұмыс орнын ұйымдастыру' },
+        practice: {
+          beginner: ['Компьютер алдында дұрыс отырудың 3 ережесін жаз.', 'Жұмыс үстеліңдегі жарықтың қай жақтан түсетінін тексер.'],
+          solid: ['Экранға дейінгі қашықтықты сызғышпен өлшеп, нәтижені жаз.', '20–20–20 ережесін өз сөзіңмен түсіндір.'],
+          challenge: ['«Сыныптағы қауіпсіз компьютер орны» атты шағын постер жоспарын жаса.']
+        }
+      },
+      {
+        id: 'aqparat', number: '02', title: 'Біздің айналамыздағы ақпарат', short: 'Ақпаратты қабылдау, сақтау және жеткізу', tone: 'tone-mint', label: 'Ақпарат · дерек', time: '7 минут',
+        lead: 'Ақпарат — бізді қоршаған орта туралы алатын біліміміз. Оны көреміз, естиміз, оқимыз, сеземіз және түрлі құрылғылар арқылы сақтаймыз.',
+        sections: [
+          { heading: 'Ақпараттың түрлері', text: 'Мәтін, сурет, дыбыс, бейне және сан — ақпаратты ұсынудың негізгі түрлері. Бір оқиғаны бірнеше түрде көрсетуге болады: мысалы, ауа райы мәтінмен де, белгімен де, кестемен де беріледі.' },
+          { heading: 'Ақпараттық үдеріс', list: ['Қабылдау — ақпаратты сезім мүшелерімен немесе құрылғымен алу.', 'Сақтау — ақпаратты дәптерде, кітапта немесе компьютерде қалдыру.', 'Өңдеу — ақпаратты салыстыру, реттеу, есептеу немесе өзгерту.', 'Жеткізу — ақпаратты басқа адамға немесе құрылғыға жіберу.'] }
+        ],
+        tip: 'Ақпараттың сапасын бағалағанда: «Ол нақты ма? Пайдалы ма? Сенімді ме?» деп сұра.',
+        video: { title: 'Ақпараттың түрлері', meta: '4 минут · қазақша іздеу', query: '5 сынып информатика біздің айналамыздағы ақпарат ақпарат түрлері' },
+        practice: {
+          beginner: ['Күнделікті өмірден мәтін, дыбыс және сурет түріндегі ақпаратқа бір-бір мысал келтір.', 'Ақпаратты қабылдайтын екі сезім мүшесін ата.'],
+          solid: ['«Мектепке бару» үдерісіндегі ақпаратты қабылдау мен жеткізуге мысал жаз.', 'Бір хабарламаны мәтін және белгі арқылы қалай көрсетуге болатынын ойла.'],
+          challenge: ['Ақпараттық үдерістің 4 қадамын көрсететін схема құрастыр.']
+        }
+      },
+      {
+        id: 'internet', number: '03', title: 'Интернетте ақпаратты іздеу', short: 'Сұраныс құру және сенімді дереккөзді таңдау', tone: 'tone-sun', label: 'Іздеу · медиасауат', time: '8 минут',
+        lead: 'Интернеттен керекті ақпаратты тез табу үшін нақты сұраныс жазып, бірнеше дереккөзді салыстырып, қауіпсіздік ережесін сақтау керек.',
+        sections: [
+          { heading: 'Жақсы іздеу сұранысы', text: 'Сұраныс қысқа әрі нақты болуы керек. Жалпы «компьютер» деп емес, «компьютердің даму тарихы 5 сынып» деп іздесек, нәтижелер пайдалырақ болады. Маңызды сөздерді таңда.' },
+          { heading: 'Сенімділікті тексер', list: ['Ақпараттың авторы немесе ұйымы көрсетілген бе?', 'Жарияланған күні бар ма және ол ескірмеген бе?', 'Басқа сенімді сайттарда осы дерек қайталана ма?', 'Сайт күмәнді сілтеме, жарнама немесе жеке дерек сұрамай ма?'] }
+        ],
+        tip: 'Интернеттегі бірінші шыққан нәтиже әрқашан ең дұрыс нәтиже бола бермейді.',
+        video: { title: 'Ақпаратты тиімді іздеу', meta: '5 минут · қазақша іздеу', query: '5 сынып информатика интернетте ақпаратты іздеу қауіпсіздік' },
+        practice: {
+          beginner: ['«Қазақстандағы ұлттық парктер» тақырыбына нақты іздеу сұранысын жаз.', 'Іздеу нәтижесіндегі тақырып пен сайт атауын ажырат.'],
+          solid: ['Екі сайтты салыстыру үшін 3 критерий құрастыр.', 'Кілт сөз бен толық сұрақтың айырмашылығын жаз.'],
+          challenge: ['«Ақпаратты тексерудің 4 қадамы» атты чек-парақ дайында.']
+        }
+      },
+      {
+        id: 'history', number: '04', title: 'Есептеу техникасының даму тарихы', short: 'Есептеу құралдарынан заманауи компьютерге дейін', tone: 'tone-coral', label: 'Тарих · технология', time: '9 минут',
+        lead: 'Есептеу техникасы адамдардың санау жұмысын жеңілдету қажеттілігінен пайда болды. Уақыт өте қарапайым құралдар күрделі электрондық компьютерлерге айналды.',
+        sections: [
+          { heading: 'Даму жолы', text: 'Ежелгі адамдар санау үшін саусақ, тас және таяқша қолданды. Кейін абак, механикалық есептеу машиналары, электрондық шамдар, транзисторлар және микропроцессорлар пайда болды.' },
+          { heading: 'Неге өзгерді?', list: ['Есептеу жылдамдығын арттыру үшін.', 'Көбірек ақпаратты сақтау үшін.', 'Құрылғыларды кішірейтіп, қолжетімді ету үшін.', 'Адам еңбегін жеңілдетіп, жаңа міндеттерді орындау үшін.'] }
+        ],
+        tip: 'Компьютер тарихы — бір ғана өнертабыстың емес, көптеген идеяның біртіндеп дамуы.',
+        video: { title: 'Компьютерлердің даму тарихы', meta: '6 минут · қазақша іздеу', query: '5 сынып информатика есептеу техникасының даму тарихы' },
+        practice: {
+          beginner: ['Есептеу техникасының 4 даму кезеңін ата.', 'Абактың не үшін қолданылғанын бір сөйлеммен жаз.'],
+          solid: ['Транзистордың компьютер дамуына әсерін түсіндір.', 'Ескі және қазіргі компьютерді 3 белгі бойынша салыстыр.'],
+          challenge: ['Есептеу техникасының уақыт сызығын 5 оқиғамен жаса.']
+        }
+      },
+      {
+        id: 'software-ai', number: '05', title: 'Программалық жасақтама және жасанды интеллект', short: 'Бағдарламалар, алгоритм және ақылды жүйелер', tone: 'tone-purple', label: 'Бағдарлама · AI', time: '10 минут',
+        lead: 'Программалық жасақтама — компьютерге не істеу керегін түсіндіретін бағдарламалар жиынтығы. Жасанды интеллект деректерден үлгі тауып, белгілі бір міндетті орындауға көмектеседі.',
+        sections: [
+          { heading: 'Программа деген не?', text: 'Операциялық жүйе құрылғы жұмысын басқарады, ал қолданбалы бағдарламалар нақты міндет атқарады: мәтін теру, сурет салу, есеп шығару немесе бейне көру. Әр бағдарлама нұсқаулар жиынтығынан тұрады.' },
+          { heading: 'Жасанды интеллект', list: ['Деректерден заңдылықтарды табуға тырысады.', 'Сурет, мәтін немесе дыбысты талдай алады.', 'Адамның шешімін толық ауыстырмайды: нәтижені тексеру керек.', 'Жеке деректерді рұқсатсыз енгізбеу маңызды.'] }
+        ],
+        tip: 'AI берген жауапты дайын шындық емес, тексеруді қажет ететін көмекші нәтиже ретінде қабылда.',
+        video: { title: 'Программа және жасанды интеллект', meta: '6 минут · қазақша іздеу', query: '5 сынып информатика программалық жасақтама жасанды интеллект' },
+        practice: {
+          beginner: ['Операциялық жүйеге және қолданбалы бағдарламаға бір-бір мысал келтір.', 'Алгоритмді өз сөзіңмен түсіндір.'],
+          solid: ['Күнделікті бір әрекетке 4 қадамдық алгоритм жаз.', 'Жасанды интеллект қолданылатын екі саланы ата.'],
+          challenge: ['AI жауабын тексерудің 3 ережесін жазып, мысал келтір.']
+        }
+      }
+    ];
+
+    const glossary = [
+      ['Эргономика', 'Адамның жұмыс орнын жайлы әрі қауіпсіз етіп ұйымдастыру қағидалары.', 'ergonomia'],
+      ['Ақпарат', 'Қоршаған орта, заттар мен құбылыстар туралы білім немесе хабар.', 'aqparat'],
+      ['Дерек', 'Ақпаратты сипаттайтын нақты белгі, сан, мәтін немесе факт.', 'aqparat'],
+      ['Ақпараттық үдеріс', 'Ақпаратты қабылдау, сақтау, өңдеу және жеткізу әрекеттері.', 'aqparat'],
+      ['Сұраныс', 'Іздеу жүйесіне енгізілетін кілт сөз немесе нақты сұрақ.', 'internet'],
+      ['Дереккөз', 'Ақпарат алынған сайт, кітап, адам немесе ұйым.', 'internet'],
+      ['Кілт сөз', 'Іздеу кезінде тақырыпты дәл сипаттайтын маңызды сөз.', 'internet'],
+      ['Абак', 'Санауға арналған көне есептеу құралы.', 'history'],
+      ['Транзистор', 'Электрондық сигналды басқаруға мүмкіндік беретін шағын бөлшек.', 'history'],
+      ['Микропроцессор', 'Компьютердің негізгі есептеу және басқару әрекеттерін орындайтын чип.', 'history'],
+      ['Программалық жасақтама', 'Компьютердің жұмысын қамтамасыз ететін бағдарламалар жиынтығы.', 'software-ai'],
+      ['Операциялық жүйе', 'Құрылғы ресурстарын басқаратын негізгі бағдарлама.', 'software-ai'],
+      ['Алгоритм', 'Мәселені шешуге арналған реттелген қадамдар тізбегі.', 'software-ai'],
+      ['Жасанды интеллект', 'Деректерді талдап, адамға ұқсас кейбір міндеттерді орындайтын технологиялар.', 'software-ai'],
+      ['Жеке дерек', 'Адамды анықтауға мүмкіндік беретін аты, мекенжайы немесе құпия мәліметі.', 'internet']
+    ];
+
+    const questions = [
+      { topic: 'ergonomia', q: 'Көз бен монитор арасының ұсынылатын қашықтығы қайсы?', options: ['10–15 см', '20–30 см', '50–70 см', '100–120 см'], answer: 2, explain: 'Экран көзден шамамен 50–70 см қашықта болғаны ыңғайлы.' },
+      { topic: 'ergonomia', q: 'Компьютермен жұмыс кезінде не істеу керек?', options: ['Үзіліссіз отыру', 'Әр 20–30 минут сайын қысқа үзіліс жасау', 'Экранды тым жарық қою', 'Арқаны бүгіп отыру'], answer: 1, explain: 'Қысқа үзіліс көз бен дененің шаршауын азайтады.' },
+      { topic: 'aqparat', q: 'Төмендегінің қайсысы ақпаратты ұсыну түріне жатады?', options: ['Мәтін', 'Орындық', 'Пернетақта', 'Кабель'], answer: 0, explain: 'Мәтін, сурет, дыбыс, бейне және сан — ақпаратты ұсыну түрлері.' },
+      { topic: 'aqparat', q: 'Ақпараттық үдерістің бір мысалы қайсы?', options: ['Кітапты үстелге қою', 'Дыбысты есту', 'Орындықты жылжыту', 'Қаламды ұстау'], answer: 1, explain: 'Дыбысты есту — ақпаратты қабылдау үдерісінің мысалы.' },
+      { topic: 'internet', q: 'Жақсы іздеу сұранысының белгісі қандай?', options: ['Өте жалпы сөз', 'Көп кездейсоқ сөз', 'Нақты кілт сөздер', 'Тек бір әріп'], answer: 2, explain: 'Нақты кілт сөздер пайдалы нәтижені тезірек табуға көмектеседі.' },
+      { topic: 'internet', q: 'Сайттың сенімділігін тексерудің дұрыс жолы қайсы?', options: ['Бірінші шыққанына сене салу', 'Авторын және жарияланған күнін тексеру', 'Тек суретіне қарау', 'Жарнамасы көп сайтты таңдау'], answer: 1, explain: 'Автор, ұйым, дата және басқа дереккөздермен салыстыру маңызды.' },
+      { topic: 'history', q: 'Абак қандай мақсатта қолданылған?', options: ['Сурет салу', 'Санау және есептеу', 'Музыка тыңдау', 'Бейне түсіру'], answer: 1, explain: 'Абак — санауға арналған көне есептеу құралы.' },
+      { topic: 'history', q: 'Компьютерлердің дамуына әсер еткен негізгі себептердің бірі:', options: ['Есептеуді баяулату', 'Құрылғыны ауырлату', 'Жылдамдық пен сақтау көлемін арттыру', 'Экранды алып тастау'], answer: 2, explain: 'Жылдамдықты арттыру және көбірек дерек сақтау — маңызды себептер.' },
+      { topic: 'software-ai', q: 'Операциялық жүйенің қызметі қандай?', options: ['Құрылғы ресурстарын басқару', 'Тек сурет салу', 'Тек музыка қосу', 'Интернетті өшіру'], answer: 0, explain: 'Операциялық жүйе құрылғының негізгі жұмысын басқарады.' },
+      { topic: 'software-ai', q: 'Жасанды интеллект нәтижесін қолданғанда не маңызды?', options: ['Тексермей қабылдау', 'Жеке құпия деректі енгізу', 'Нәтижені тексеру', 'Барлық шешімді оған беру'], answer: 2, explain: 'AI көмектесе алады, бірақ оның жауабын міндетті түрде тексеру керек.' }
+    ];
+
+    const gameData = {
+      ergonomia: [
+        ['Арқаңды тік ұстап отыру', 'дұрыс', ['дұрыс', 'бұрыс']],
+        ['Экранға тым жақын отыру', 'бұрыс', ['дұрыс', 'бұрыс']],
+        ['Әр 20–30 минут сайын қысқа үзіліс жасау', 'дұрыс', ['дұрыс', 'бұрыс']],
+        ['Экранға жарықтың тікелей шағылуы', 'бұрыс', ['дұрыс', 'бұрыс']],
+        ['Көз бен экран арасы 50–70 см болуы', 'дұрыс', ['дұрыс', 'бұрыс']]
+      ],
+      aqparat: [
+        ['Кітаптағы қызықты мәтінді оқу', 'ақпарат', ['ақпарат', 'әрекет']],
+        ['Телефонға келген хабарлама', 'ақпарат', ['ақпарат', 'әрекет']],
+        ['Суретке қарау', 'әрекет', ['ақпарат', 'әрекет']],
+        ['Ауа райы туралы хабар', 'ақпарат', ['ақпарат', 'әрекет']],
+        ['Файлды басқа адамға жіберу', 'әрекет', ['ақпарат', 'әрекет']]
+      ],
+      internet: [
+        ['Бейтаныс сайтқа аты-жөніңді енгізу', 'қауіпті', ['қауіпсіз', 'қауіпті']],
+        ['Ақпаратты екі сенімді дереккөзбен салыстыру', 'қауіпсіз', ['қауіпсіз', 'қауіпті']],
+        ['Күмәнді сілтемені бірден басу', 'қауіпті', ['қауіпсіз', 'қауіпті']],
+        ['Іздеу сұранысына нақты кілт сөз қосу', 'қауіпсіз', ['қауіпсіз', 'қауіпті']],
+        ['Құпиясөзді чатта бөлісу', 'қауіпті', ['қауіпсіз', 'қауіпті']]
+      ],
+      history: [
+        ['Абак', 1], ['Механикалық есептеу машинасы', 2], ['Электрондық компьютер', 3], ['Микропроцессорлы компьютер', 4]
+      ],
+      'software-ai': [
+        ['Мәтін теруге арналған редактор', 'программа', ['программа', 'құрылғы']],
+        ['Пернетақта', 'құрылғы', ['программа', 'құрылғы']],
+        ['Операциялық жүйе', 'программа', ['программа', 'құрылғы']],
+        ['Принтер', 'құрылғы', ['программа', 'құрылғы']],
+        ['AI жауабын дерекпен салыстырып тексеру', 'дұрыс', ['дұрыс', 'бұрыс']]
+      ]
+    };
+
+    let state = {
+      activeTopic: 0,
+      activePracticeTopic: 0,
+      activeView: 'lessons',
+      completed: new Set(),
+      answers: {},
+      testSubmitted: false,
+      game: { type: 'info', index: 0, score: 0, selectedOrder: [], finished: false }
+    };
+
+    try {
+      const saved = JSON.parse(localStorage.getItem('inf5q1-state') || '{}');
+      if (Array.isArray(saved.completed)) state.completed = new Set(saved.completed);
+      if (saved.answers && typeof saved.answers === 'object') state.answers = saved.answers;
+    } catch (error) {}
+
+    const $ = (selector) => document.querySelector(selector);
+    const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+    const topicById = (id) => topics.find((topic) => topic.id === id);
+    const topicName = (id) => topicById(id)?.title || id;
+
+    function saveState() {
+      try { localStorage.setItem('inf5q1-state', JSON.stringify({ completed: [...state.completed], answers: state.answers })); } catch (error) {}
+      updateProgress();
+    }
+
+    function showToast(message) {
+      $('#toastText').textContent = message;
+      $('#toast').classList.add('show');
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => $('#toast').classList.remove('show'), 2300);
+    }
+
+    function totalTasks() { return topics.reduce((sum, topic) => sum + Object.values(topic.practice).flat().length, 0); }
+    function progressPercent() { return Math.round((state.completed.size / totalTasks()) * 100); }
+
+    function updateProgress() {
+      const percent = progressPercent();
+      $('#miniProgress').style.width = percent + '%';
+      $('#miniProgressText').textContent = percent + '%';
+      $('#practiceProgressLine').style.width = percent + '%';
+      $('#practiceProgressPercent').textContent = percent + '%';
+      $('#practiceProgressSub').textContent = `${state.completed.size} тапсырма орындалды`;
+      $('#practiceProgressTitle').textContent = percent === 100 ? 'Керемет нәтиже!' : percent >= 50 ? 'Жақсы қарқын!' : 'Жақсы бастама!';
+    }
+
+    function renderLessonTabs() {
+      $('#lessonTabs').innerHTML = topics.map((topic, index) => `<button class="topic-pill ${topic.tone} ${index === state.activeTopic ? 'active' : ''}" data-topic-index="${index}" role="tab" aria-selected="${index === state.activeTopic}"><span class="topic-num">${topic.number}</span><span>${topic.title}</span></button>`).join('');
+      $$('#lessonTabs .topic-pill').forEach((button) => button.addEventListener('click', () => { state.activeTopic = Number(button.dataset.topicIndex); renderLessonTabs(); renderLesson(); }));
+    }
+
+    function renderLesson() {
+      const topic = topics[state.activeTopic];
+      $('#lessonView').innerHTML = `
+        <div class="lecture-layout">
+          <article class="lesson-card">
+            <div class="lesson-top"><span class="lesson-label"><i></i>${topic.label}</span><span class="lesson-time">Оқу уақыты · ${topic.time}</span></div>
+            <div class="lesson-body">
+              <h3>${topic.title}</h3>
+              <p class="lesson-lead">${topic.lead}</p>
+              <div class="lesson-divider"></div>
+              <div class="lesson-content">
+                <div><h4>${topic.sections[0].heading}</h4><p>${topic.sections[0].text}</p></div>
+                <div><h4>${topic.sections[1].heading}</h4><ul class="lesson-list">${topic.sections[1].list.map((item) => `<li>${item}</li>`).join('')}</ul></div>
+              </div>
+              <div class="tip-box" style="margin-top: 22px"><span class="tip-icon">i</span><div><strong>Есте сақта</strong><span>${topic.tip}</span></div></div>
+              <div class="video-card">
+                <a class="video-thumb" href="https://www.youtube.com/results?search_query=${encodeURIComponent(topic.video.query)}" target="_blank" rel="noopener" aria-label="${topic.video.title} бейнесін ашу"><span class="play">▶</span></a>
+                <div class="video-meta"><small>Дәрістен кейін көр</small><strong>${topic.video.title}</strong><span>${topic.video.meta}</span></div>
+                <a class="video-link" href="https://www.youtube.com/results?search_query=${encodeURIComponent(topic.video.query)}" target="_blank" rel="noopener">YouTube-та ашу ↗</a>
+              </div>
+            </div>
+          </article>
+          <aside class="side-stack">
+            <div class="side-card"><h4>Бұл тақырыпта сен...</h4><p>Қысқа мақсаттарды орындау арқылы біліміңді бекітесің.</p><div class="side-stat"><span>Дәріс</span><b>1</b></div><div class="side-stat"><span>Практика</span><b>${Object.values(topic.practice).flat().length}</b></div><div class="side-stat"><span>Сөздіктегі термин</span><b>${glossary.filter((item) => item[2] === topic.id).length}</b></div></div>
+            <div class="side-card"><div class="question-box"><small>Жылдам тексер</small><p>${topic.id === 'internet' ? 'Ақпараттың сенімділігін қалай тексеруге болады?' : topic.id === 'ergonomia' ? 'Экран мен көз арасы неге маңызды?' : topic.id === 'aqparat' ? 'Ақпараттың қандай түрлерін білесің?' : topic.id === 'history' ? 'Есептеу құралдары не үшін дамыды?' : 'AI жауабын неге тексеру қажет?'}</p><button class="reveal-btn" type="button" id="revealAnswer">Жауабын көрсету +</button><div class="answer" id="answer">${topic.id === 'internet' ? 'Авторын, жарияланған күнін және басқа сенімді дереккөздердегі ақпаратпен сәйкестігін тексер.' : topic.id === 'ergonomia' ? 'Дұрыс қашықтық көздің шаршауын азайтып, денсаулықты қорғауға көмектеседі.' : topic.id === 'aqparat' ? 'Мәтін, сурет, дыбыс, бейне және сан — негізгі түрлер.' : topic.id === 'history' ? 'Жылдамдықты арттыру, сақтау көлемін көбейту және адам еңбегін жеңілдету үшін.' : 'Жасанды интеллект қателесуі мүмкін, сондықтан нәтижесін сыни оймен тексеру керек.'}</div></div></div>
+          </aside>
+        </div>`;
+      $('#revealAnswer').addEventListener('click', () => { $('#answer').classList.toggle('show'); $('#revealAnswer').textContent = $('#answer').classList.contains('show') ? 'Жауабын жасыру −' : 'Жауабын көрсету +'; });
+    }
+
+    function renderPracticeTabs() {
+      $('#practiceTabs').innerHTML = topics.map((topic, index) => `<button class="topic-pill ${topic.tone} ${index === state.activePracticeTopic ? 'active' : ''}" data-practice-topic="${index}" role="tab" aria-selected="${index === state.activePracticeTopic}"><span class="topic-num">${topic.number}</span><span>${topic.title}</span></button>`).join('');
+      $$('#practiceTabs .topic-pill').forEach((button) => button.addEventListener('click', () => { state.activePracticeTopic = Number(button.dataset.practiceTopic); renderPracticeTabs(); renderPractice(); }));
+    }
+
+    function renderPractice() {
+      const activeTopic = topics[state.activePracticeTopic];
+      const levels = [
+        ['beginner', 'Бастапқы деңгей', 'Түсінгеніңді тексер', 'Жаңа ұғымдарды еске түсіріп, қысқа жауап бер.', 'level-badge'],
+        ['solid', 'Орта деңгей', 'Байланысын тап', 'Білімді салыстыр, түсіндір және өмірмен байланыстыр.', 'level-badge solid'],
+        ['challenge', 'Шығармашылық деңгей', 'Өзің жасап көр', 'Тақырыпты өз идеяңмен көрсететін шағын өнім жаса.', 'level-badge challenge']
+      ];
+      $('#practiceGrid').innerHTML = levels.map(([key, title, subtitle, description, badgeClass]) => `
+        <article class="practice-card">
+          <div class="practice-topic-label"><i></i>${activeTopic.number} · ${activeTopic.title}</div>
+          <div class="${badgeClass}">${title}</div><h3>${subtitle}</h3><p>${description}</p>
+          <div class="task-list">${activeTopic.practice[key].map((task, index) => { const taskId = `${activeTopic.id}-${key}-${index}`; return `<label class="task"><input type="checkbox" data-task-id="${taskId}" ${state.completed.has(taskId) ? 'checked' : ''}><span>${task}</span></label>`; }).join('')}</div>
+        </article>`).join('');
+      $$('#practiceGrid input[data-task-id]').forEach((input) => input.addEventListener('change', () => { if (input.checked) state.completed.add(input.dataset.taskId); else state.completed.delete(input.dataset.taskId); saveState(); if (input.checked) showToast('Тапсырма прогреске қосылды'); }));
+      updateProgress();
+    }
+
+    function showGame(type) {
+      $$('#gameList .game-card').forEach((card) => card.classList.toggle('selected', card.dataset.game === type));
+      state.game = { type, index: 0, score: 0, selectedOrder: [], finished: false };
+      renderGame();
+    }
+
+    function renderGame() {
+      const game = state.game;
+      if (game.type === 'history') return renderHistoryGame();
+      const gameCopy = {
+        ergonomia: ['Эргономика сақшысы', 'Әдетті оқып, оның дұрыс немесе бұрыс екенін таңда.'],
+        aqparat: ['Ақпаратты таны', 'Берілген мысалды оқып, оның ақпарат па әлде әрекет пе екенін таңда.'],
+        internet: ['Қауіпсіз іздеу', 'Интернеттегі әрекетті бағала: ол қауіпсіз бе, әлде қауіпті ме?'],
+        'software-ai': ['AI көмекшісін тексер', 'Берілген нысанның программа, құрылғы немесе дұрыс әрекет екенін таңда.']
+      }[game.type];
+      const title = gameCopy[0];
+      const instruction = gameCopy[1];
+      const current = gameData[game.type][game.index];
+      if (game.finished) {
+        $('#gamePanel').innerHTML = `<div class="game-panel-empty"><div><div class="empty-icon">✓</div><h3>Ойын аяқталды!</h3><p>${gameData[game.type].length} раундтың ${game.score}-ын дұрыс орындадың. Тағы бір рет байқап көр.</p><button class="btn btn-primary btn-small" id="restartGame" type="button" style="margin-top:18px">Қайта ойнау</button></div></div>`;
+        $('#restartGame').addEventListener('click', () => showGame(game.type));
+        return;
+      }
+      $('#gamePanel').innerHTML = `<div class="game-kicker">3 минуттық жаттығу</div><h3>${title}</h3><p class="game-instruction">${instruction}</p><div class="game-score-row"><span>Раунд ${game.index + 1} / ${gameData[game.type].length}</span><span>Ұпай: <b>${game.score}</b></span></div><div class="game-question"><small>Мысал</small><strong>${current[0]}</strong><div class="game-options">${current[2].map((option) => `<button class="game-option" data-option="${option}" type="button">${option[0].toUpperCase() + option.slice(1)}</button>`).join('')}</div><div class="game-feedback" id="gameFeedback"></div></div>`;
+      $$('#gamePanel .game-option').forEach((button) => button.addEventListener('click', () => handleChoice(button, current[1], game.type)));
+    }
+
+    function handleChoice(button, correct, type) {
+      const all = $$('#gamePanel .game-option');
+      all.forEach((item) => item.disabled = true);
+      const isCorrect = button.dataset.option === correct;
+      button.classList.add(isCorrect ? 'correct' : 'wrong');
+      if (!isCorrect) all.find((item) => item.dataset.option === correct)?.classList.add('correct');
+      if (isCorrect) state.game.score++;
+      $('#gameFeedback').textContent = isCorrect ? 'Дұрыс! Келесі раундқа өтейік.' : `Дұрыс жауап: ${correct}. Келесі раундқа өтейік.`;
+      setTimeout(() => { state.game.index++; if (state.game.index >= gameData[type].length) state.game.finished = true; renderGame(); }, 850);
+    }
+
+    function renderHistoryGame() {
+      const game = state.game;
+      if (game.finished) {
+        $('#gamePanel').innerHTML = `<div class="game-panel-empty"><div><div class="empty-icon">★</div><h3>Уақыт сызығы дайын!</h3><p>Барлық кезеңді дұрыс ретпен орналастырдың. Технологияның қалай дамығанын көрдің.</p><button class="btn btn-primary btn-small" id="restartGame" type="button" style="margin-top:18px">Қайта ойнау</button></div></div>`;
+        $('#restartGame').addEventListener('click', () => showGame('history'));
+        return;
+      }
+      const ordered = [...gameData.history].sort(() => .5 - Math.random());
+      if (!game.currentOrder) game.currentOrder = ordered;
+      $('#gamePanel').innerHTML = `<div class="game-kicker">Ретімен орналастыр</div><h3>Уақыт сызығы</h3><p class="game-instruction">Есептеу техникасының даму кезеңдерін ертеден жаңасына қарай таңда.</p><div class="game-score-row"><span>Таңдалғаны: ${game.selectedOrder.length} / 4</span><span>Дұрыс рет: <b>1 → 4</b></span></div><div class="order-grid">${game.currentOrder.map(([label, order], index) => `<button class="order-chip ${game.selectedOrder.includes(order) ? 'picked' : ''}" data-order="${order}" type="button" ${game.selectedOrder.includes(order) ? 'disabled' : ''}><span>${game.selectedOrder.includes(order) ? game.selectedOrder.indexOf(order) + 1 : '?'}</span>${label}</button>`).join('')}</div><div class="game-feedback" id="gameFeedback"></div>`;
+      $$('#gamePanel .order-chip').forEach((button) => button.addEventListener('click', () => {
+        const chosen = Number(button.dataset.order); const expected = game.selectedOrder.length + 1;
+        if (chosen === expected) { game.selectedOrder.push(chosen); if (game.selectedOrder.length === 4) { game.score = 4; game.finished = true; } renderHistoryGame(); }
+        else { $('#gameFeedback').textContent = 'Бұл кезеңді сәл ертерек орналастыру керек. Ойланып көр!'; button.classList.add('wrong'); setTimeout(() => button.classList.remove('wrong'), 500); }
+      }));
+    }
+
+    function renderTestFilter() {
+      $('#testFilter').innerHTML = '<option value="all">Барлық тақырып</option>' + topics.map((topic) => `<option value="${topic.id}">${topic.number} · ${topic.title}</option>`).join('');
+    }
+
+    function renderTest() {
+      const filter = $('#testFilter').value;
+      const list = questions.filter((question) => filter === 'all' || question.topic === filter);
+      $('#testQuestions').innerHTML = list.map((question, index) => { const realIndex = questions.indexOf(question); const selected = state.answers[realIndex]; return `<article class="test-question" data-question-index="${realIndex}"><div class="q-top"><span class="q-number">${String(realIndex + 1).padStart(2, '0')}</span><div class="q-copy"><small>${topicName(question.topic)}</small><strong>${question.q}</strong></div></div><div class="options">${question.options.map((option, optionIndex) => `<label class="option ${selected === optionIndex ? 'selected' : ''}"><input type="radio" name="q${realIndex}" value="${optionIndex}" ${selected === optionIndex ? 'checked' : ''}><span class="option-letter">${String.fromCharCode(65 + optionIndex)}</span>${option}</label>`).join('')}</div></article>`; }).join('');
+      $$('#testQuestions .option').forEach((label) => label.addEventListener('click', () => { const input = label.querySelector('input'); const questionIndex = Number(label.closest('.test-question').dataset.questionIndex); state.answers[questionIndex] = Number(input.value); $$('#testQuestions .test-question').find((card) => Number(card.dataset.questionIndex) === questionIndex)?.querySelectorAll('.option').forEach((option) => option.classList.remove('selected')); label.classList.add('selected'); updateTestProgress(); saveState(); }));
+      updateTestProgress();
+    }
+
+    function updateTestProgress() {
+      const count = Object.keys(state.answers).length;
+      $('#answeredCount').textContent = `${count}/10 жауап`;
+      $('#testProgressLine').style.width = `${(count / questions.length) * 100}%`;
+    }
+
+    function submitTest() {
+      const answered = Object.keys(state.answers).length;
+      if (answered < questions.length) { showToast(`Алдымен барлық сұраққа жауап бер: ${answered}/10`); return; }
+      const score = questions.reduce((sum, question, index) => sum + (state.answers[index] === question.answer ? 1 : 0), 0);
+      state.testSubmitted = true;
+      $('#resultScore').textContent = `${score}/10`;
+      $('#resultTitle').textContent = score >= 9 ? 'Тамаша нәтиже!' : score >= 7 ? 'Өте жақсы!' : score >= 5 ? 'Жақсы, тағы бір қайтала!' : 'Қайта қарап көр!';
+      $('#resultText').textContent = score >= 7 ? 'Негізгі ұғымдарды жақсы меңгердің.' : 'Қате жауаптарды қарап, дәрістерді қайта оқып шық.';
+      $('#testResult').classList.add('show');
+      $$('#testQuestions .test-question').forEach((card) => { const index = Number(card.dataset.questionIndex); card.classList.toggle('correct-answer', state.answers[index] === questions[index].answer); card.classList.toggle('incorrect', state.answers[index] !== questions[index].answer); });
+      $('#testResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function renderGlossary() {
+      const query = $('#glossarySearch').value.trim().toLowerCase();
+      const filter = $('#glossaryFilter').value;
+      const items = glossary.filter(([term, description, topic]) => (filter === 'all' || topic === filter) && `${term} ${description}`.toLowerCase().includes(query));
+      $('#glossaryGrid').innerHTML = items.length ? items.map(([term, description, topic]) => `<article class="term-card"><small>${topicName(topic).split(' ').slice(0, 2).join(' ')}</small><h3>${term}</h3><p>${description}</p></article>`).join('') : '<div class="empty-state">Бұл сұраныс бойынша термин табылмады. Басқа сөзбен іздеп көр.</div>';
+    }
+
+    function openModal() { $('#modalBackdrop').classList.add('show'); document.body.classList.add('modal-open'); $('#modalClose').focus(); }
+    function closeModal() { $('#modalBackdrop').classList.remove('show'); document.body.classList.remove('modal-open'); }
+
+    function setView(view) {
+      state.activeView = view;
+      $$('.nav-item').forEach((button) => button.classList.toggle('active', button.dataset.view === view));
+      $$('.view').forEach((section) => section.classList.toggle('active', section.id === view));
+      document.getElementById(view).scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    $$('.nav-item').forEach((button) => button.addEventListener('click', () => setView(button.dataset.view)));
+    $('#startBtn').addEventListener('click', () => setView('lessons'));
+    $('#aboutBtn').addEventListener('click', openModal);
+    $('#aboutFooterBtn').addEventListener('click', openModal);
+    $('#modalClose').addEventListener('click', closeModal);
+    $('#modalOk').addEventListener('click', closeModal);
+    $('#modalBackdrop').addEventListener('click', (event) => { if (event.target === $('#modalBackdrop')) closeModal(); });
+    $('#printBtn').addEventListener('click', () => { showToast('Басып шығару терезесі ашылды'); window.print(); });
+    $('#topBtn').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    $('#resetProgressBtn').addEventListener('click', () => { state.completed.clear(); saveState(); renderPractice(); showToast('Прогресс тазаланды'); });
+    $$('#gameList .game-card').forEach((card) => card.addEventListener('click', () => showGame(card.dataset.game)));
+    $('#testFilter').addEventListener('change', () => { $('#testResult').classList.remove('show'); renderTest(); });
+    $('#submitTestBtn').addEventListener('click', submitTest);
+    $('#glossarySearch').addEventListener('input', renderGlossary);
+    $('#glossaryFilter').addEventListener('change', renderGlossary);
+    document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && $('#modalBackdrop').classList.contains('show')) closeModal(); });
+
+    renderLessonTabs(); renderLesson(); renderPracticeTabs(); renderPractice(); renderTestFilter(); renderTest(); renderGlossary(); showGame('ergonomia'); updateProgress();
+  </script>
+</body>
+</html>
